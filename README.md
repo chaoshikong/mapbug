@@ -9,3 +9,4 @@
 
 比如我提交了"abcde"，然后又提交了"efg"，用list查询的时候，发现原来提交的"abcde"变成"efgde"了
 
+已提交了这个BUG，地址在https://github.com/golang/go/issues/59917 待回复中
