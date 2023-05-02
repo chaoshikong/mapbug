@@ -20,7 +20,7 @@ I believe this is from fiber being unsafe rather an issue with go itself.我认�
 然后回复的The values given by the ctx.Params method are mutable (also a reference)，Pls use the copy function before you store it
 就是说，ctx.Params()返回的是个引用，需要使用复制功能，难怪fasthttp比官方库net/http速度更快，连string都使用的是引用返回的么，一来一回几次对话老外有些急了，直接给出解决方案了，
 代码如下：
-···go
+```go
 	app.Get("/dns/:name", func(c *fiber.Ctx) error {
 		name := utils.CopyString(c.Params("name"))
 		if name != "" {
