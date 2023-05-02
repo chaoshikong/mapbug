@@ -9,4 +9,10 @@
 
 比如我提交了"abcde"，然后又提交了"efg"，用list查询的时候，发现原来提交的"abcde"变成"efgde"了
 
-已提交了这个BUG，地址在https://github.com/golang/go/issues/59917 待回复中
+已提交了这个BUG，地址在https://github.com/golang/go/issues/59917 等待回复中
+几个小时后，得到的回复是：
+I believe this is from fiber being unsafe rather an issue with go itself.我认为这是因为fiber不安全，而不是go本身的问题。
+
+于是我把fiber框架换成gin，结果真的就没有问题了。。。看来还真是fiber的问题
+
+那么，去fiber网去提问题，地址https://github.com/gofiber/fiber/issues/2446 等待回复中
