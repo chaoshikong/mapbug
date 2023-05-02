@@ -18,7 +18,7 @@ I believe this is from fiber being unsafe rather an issue with go itself.我认�
 那么，去fiber网去提问题，地址https://github.com/gofiber/fiber/issues/2446 等待回复中
 
 然后回复的The values given by the ctx.Params method are mutable (also a reference)，Pls use the copy function before you store it
-就是说，ctx.Params()返回的是个引用，需要使用复制功能，难怪fasthttp比官方库net/http速度更快，连string都使用的是引用返回的么，一来一回几次对话老外有些急了，直接给出解决方案了，
+就是说，ctx.Params()返回的是个引用，需要使用复制功能，难怪fiber比使用官方库net/http的gin速度更快，连string都使用的是引用返回的么，一来一回几次对话老外有些急了，直接给出解决方案了，
 代码如下：
 ```go
 	app.Get("/dns/:name", func(c *fiber.Ctx) error {
@@ -31,4 +31,6 @@ I believe this is from fiber being unsafe rather an issue with go itself.我认�
 		return c.SendString("OK")
 	})
 ```
-就是要使用utils.CopyString()把引用再复制1份，要不然有冲突，不过深层次的原因，就是要去读fiber的源代码了
+就是要使用utils.CopyString()把引用再复制1份，要不然有冲突，然后我去查了一下gin的Param()函数，和fiber.Params()有什么不同时，发现
+gin使用的是func (ps Params) ByName(name string) (va string) {}，因为不是(ps * Params)也就是说把参数复制了一份
+而fiber.Params()中用的是func (c * Ctx) Params(key string, defaultValue ...string) string {}，不知道和这个有没有关系
