@@ -34,3 +34,34 @@ I believe this is from fiber being unsafe rather an issue with go itself.我认�
 就是要使用utils.CopyString()把引用再复制1份，要不然有冲突，然后我去查了一下gin的Param()函数，和fiber.Params()有什么不同时，发现
 gin使用的是func (ps Params) ByName(name string) (va string) {}，因为不是(ps * Params)也就是说把参数复制了一份
 而fiber.Params()中用的是func (c * Ctx) Params(key string, defaultValue ...string) string {}，不知道和这个有没有关系
+再深入点了解，发现了一段这样的代码，很能说明问题：
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/gofiber/fiber/v2"
+)
+
+func main() {
+	//app := fiber.New(fiber.Config{Immutable: true})//如果启用Immutable:true，则没有任何问题，否则3秒后的值是会变的
+	app := fiber.New()
+
+	app.Get("/:number", func(c *fiber.Ctx) error {
+		number := c.Params("number")
+		go myfunc(number)
+		return c.SendString(number)
+	})
+	app.Listen(":3000")
+}
+
+func myfunc(number string) {
+	fmt.Printf("number is %s \n", number)
+	time.Sleep(3 * time.Second)
+	fmt.Printf("number is now %s \n", number)
+}
+```
+看来fiber为了做到速度极致，把Immutable的值默认为false，因为true时性能会下降，这样就可以根据用户的需求来选择后期是否要复制，或者前期取true，两种选择
+不过了解得越多，我也越来越喜欢fiber了，因为做得真的很人性化，对于我这种喜欢追求速度的人来说。。。
