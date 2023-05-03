@@ -65,3 +65,49 @@ func myfunc(number string) {
 ```
 看来fiber为了做到速度极致，把Immutable的值默认为false，因为true时性能会下降，这样就可以根据用户的需求来选择后期是否要复制，或者前期取true，两种选择
 不过了解得越多，我也越来越喜欢fiber了，因为做得真的很人性化，对于我这种喜欢追求速度的人来说。。。
+
+然后我又深挖，看看utils.CopyString中的代码
+```go
+type StringHeader struct {
+	Data uintptr
+	Len  int
+}
+
+func UnsafeBytes(s string) []byte {
+	if s == "" {
+		return nil
+	}
+
+	return (*[MaxStringLen]byte)(unsafe.Pointer(
+		(*reflect.StringHeader)(unsafe.Pointer(&s)).Data),
+	)[:len(s):len(s)]
+}
+
+func CopyString(s string) string {
+	return string(UnsafeBytes(s))
+}
+```
+可以看到，在GO中的string类型，其实是一个struct{Data uintptr,Len int}结构，那么完全有可能1个字符串赋值给另一个字符串的时候，不用真正的复制，而是只要改变内部的指针即可，写个代码来证明我的猜想试试
+```go
+func main() {
+	var a, b string
+	a = "abc"
+	prints(a)
+	b = a
+	prints(b)
+	a = "aaa"
+	prints(a)
+	b = "efg"
+	prints(b)
+}
+
+func prints(s string) {
+	fmt.Println((*reflect.StringHeader)(unsafe.Pointer(&s)).Data)
+}
+结果：
+8801960
+8801960
+8801957
+8801972
+看来是go在的string的问题，真象大白了，原来go为了保证运行速度，string赋值时并不是复制内容，而是指向同一块内存，这就解释了map[name]时，会把原来的值改掉的原因了。
+```
